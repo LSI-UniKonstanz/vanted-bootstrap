@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="bootstrapper-jar" name="Create Runnable Jar for Vanted Botstrap Loader">
+    <!-- ANT 1.7 is required -->
+    <target name="bootstrapper-jar" depends="compile">
+    	
+        <jar destfile="jar/vanted-boot.jar" basedir="bin">
+            <manifest>
+                <attribute name="Built-By" value="${user.name}"/>
+                <attribute name="Class-Path" value="."/>
+                <attribute name="Main-Class" value="edu.monash.VantedBootstrap"/>
+                <!-- since Java 7u51 the jar manifest needs the permission attribute for webstart -->
+                <attribute name="Permissions" value="all-permissions"/>
+            </manifest>
+            
+        </jar>
+    	  	
+    </target>
+    
+    <target name="compile" depends="clean, init">
+        
+        <javac srcdir="src" destdir="bin"/>
+        
+    </target>
+
+	<target name="clean">
+        <delete dir="bin"/>
+		<delete dir="jar"/>
+        
+    </target>
+    
+	<target name="init">
+        <mkdir dir="bin"/>
+        
+    </target>
+	
+	
+</project>
