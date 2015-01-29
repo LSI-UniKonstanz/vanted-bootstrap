@@ -10,6 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 
 /**
  * @author matthiak
@@ -69,8 +70,12 @@ public class VantedBootstrap {
 	}
 
 	static ClassLoader loadLibraries(ClassLoader cl) {
-		File location = new File("");
-		String executionpath = location.getAbsolutePath();
+		String executionpath = ((URLClassLoader)Thread.currentThread().getContextClassLoader()).getURLs()[0].getPath();
+		
+//		File location = new File("");
+//		String executionpath = location.getAbsolutePath();
+		if(executionpath.endsWith(".jar"))
+			executionpath = executionpath.substring(0, executionpath.lastIndexOf("/"));
 		if(DEBUG) {
 			System.out.println("execution path: "+ executionpath);
 		}
