@@ -76,6 +76,7 @@ public class VantedBootstrap {
 //		String executionpath = location.getAbsolutePath();
 		if(executionpath.endsWith(".jar"))
 			executionpath = executionpath.substring(0, executionpath.lastIndexOf("/"));
+		executionpath = executionpath.replace("%20", " ");
 		if(DEBUG) {
 			System.out.println("execution path: "+ executionpath);
 		}
