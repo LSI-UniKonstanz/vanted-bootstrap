@@ -29,6 +29,7 @@ public class VantedBootstrap {
 		
 		try {
 			Class<?> loadClass = bootstraploader.loadClass("de.ipk_gatersleben.ag_nw.graffiti.plugins.gui.webstart.Main");
+			
 			Constructor<?>[] constructors = loadClass.getConstructors();
 			if(DEBUG) {
 				for(Constructor<?> constr : constructors){
@@ -45,6 +46,9 @@ public class VantedBootstrap {
 					System.out.println(")");
 				}
 			}
+			
+			Thread.currentThread().setContextClassLoader(bootstraploader);
+			
 			Method startmethod = loadClass.getMethod("startVanted", String[].class, String.class);
 
 			startmethod.invoke(null,args, null);
