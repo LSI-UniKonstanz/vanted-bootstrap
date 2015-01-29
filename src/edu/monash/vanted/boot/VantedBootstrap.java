@@ -65,7 +65,7 @@ public class VantedBootstrap {
 	}
 
 	static ClassLoader loadLibraries(ClassLoader cl) {
-		File location = new File(".");
+		File location = new File("");
 		String executionpath = location.getAbsolutePath();
 		if(DEBUG) {
 			System.out.println("execution path: "+ executionpath);
