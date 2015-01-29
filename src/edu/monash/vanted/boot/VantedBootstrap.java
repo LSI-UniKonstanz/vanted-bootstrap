@@ -1,7 +1,7 @@
 /**
  * 
  */
-package edu.monash;
+package edu.monash.vanted.boot;
 
 import java.io.File;
 import java.io.FilenameFilter;

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package edu.monash;
+package edu.monash.vanted.boot;
 
 import java.net.URL;
 import java.net.URLClassLoader;
