@@ -17,7 +17,7 @@ import java.net.URL;
  */
 public class VantedBootstrap {
 
-	private static final Boolean DEBUG = false;
+	private static final Boolean DEBUG = true;
 
 
 	/**
@@ -65,12 +65,14 @@ public class VantedBootstrap {
 	}
 
 	static ClassLoader loadLibraries(ClassLoader cl) {
-		String executionpath = Thread.currentThread().getContextClassLoader().getResource(".").getPath();
+		File location = new File(".");
+		String executionpath = location.getAbsolutePath();
 		if(DEBUG) {
 			System.out.println("execution path: "+ executionpath);
 		}
-		File f = new File(executionpath + "\\core-libs\\");
-		File core = new File(executionpath + "\\vanted-core\\vanted-core.jar");
+		File f = new File(executionpath + "/core-libs/");
+		System.out.println("corelibs:"+f.getPath());
+		File core = new File(executionpath + "/vanted-core/vanted-core.jar");
 		FilenameFilter filter = new FilenameFilter() {
 
 			@Override
@@ -78,8 +80,9 @@ public class VantedBootstrap {
 				return name.toString().endsWith(".jar");
 			}
 		};
+		System.out.println("listing files");
 		File[] listFiles = f.listFiles(filter);
-
+		System.out.println("listFiles:"+listFiles.length);
 		URL urllist[] = new URL[listFiles.length + 1];
 
 
