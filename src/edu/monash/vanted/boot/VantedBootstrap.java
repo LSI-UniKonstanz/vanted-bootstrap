@@ -18,13 +18,18 @@ import java.net.URLClassLoader;
  */
 public class VantedBootstrap {
 
-	private static final Boolean DEBUG = true;
+	private static Boolean DEBUG = false;
 
 
 	/**
 	 * 
 	 */
 	public VantedBootstrap(String[] args) {
+		if(DEBUG){
+			System.out.println("Getting bootstrap information:");
+			System.out.println();
+		}
+		
 		ClassLoader bootstraploader = loadLibraries(Thread.currentThread().getContextClassLoader());
 
 		
@@ -34,7 +39,7 @@ public class VantedBootstrap {
 			Constructor<?>[] constructors = loadClass.getConstructors();
 			if(DEBUG) {
 				for(Constructor<?> constr : constructors){
-					System.out.print("constructor name " + constr.getName()+"(");
+					System.out.print("Constructor name " + constr.getName()+"(");
 					for(Class<?> paramname : constr.getParameterTypes())
 						System.out.print(paramname.getName()+",");
 					System.out.println(")");
@@ -72,17 +77,21 @@ public class VantedBootstrap {
 	static ClassLoader loadLibraries(ClassLoader cl) {
 		String executionpath = ((URLClassLoader)Thread.currentThread().getContextClassLoader()).getURLs()[0].getPath();
 		
-//		File location = new File("");
-//		String executionpath = location.getAbsolutePath();
 		if(executionpath.endsWith(".jar"))
 			executionpath = executionpath.substring(0, executionpath.lastIndexOf("/"));
 		executionpath = executionpath.replace("%20", " ");
+		
 		if(DEBUG) {
-			System.out.println("execution path: "+ executionpath);
+			System.out.println("Execution path: "+ executionpath);
 		}
 		File f = new File(executionpath + "/core-libs/");
-		System.out.println("corelibs:"+f.getPath());
-		File core = new File(executionpath + "/vanted-core/vanted-core.jar");
+		if(DEBUG) {
+			System.out.println("corelibs path:"+f.getPath());
+		}
+		File c = new File(executionpath + "/vanted-core/");
+		if(DEBUG) {
+			System.out.println("    core path:"+c.getPath());
+		}
 		FilenameFilter filter = new FilenameFilter() {
 
 			@Override
@@ -90,18 +99,28 @@ public class VantedBootstrap {
 				return name.toString().endsWith(".jar");
 			}
 		};
-		System.out.println("listing files");
-		File[] listFiles = f.listFiles(filter);
-		System.out.println("listFiles:"+listFiles.length);
-		URL urllist[] = new URL[listFiles.length + 1];
+
+		File[] listLibFiles = f.listFiles(filter);
+		if(DEBUG) {
+			System.out.println("number of core-lib files:"+listLibFiles.length);
+		}
+		File[] listCoreFiles= c.listFiles(filter);
+		if(DEBUG) {
+			System.out.println("    number of core-files:"+listCoreFiles.length);
+		}
+		
+		
+		URL urllist[] = new URL[listLibFiles.length + listCoreFiles.length];
 
 
 		try {
 			int i = 0;
 
-			urllist[i++] = core.toURI().toURL();
-
-			for(File curFile : listFiles) {
+			for(File curFile : listLibFiles) {
+				URL url = curFile.toURI().toURL();
+				urllist[i++] = url;
+			}
+			for(File curFile : listCoreFiles) {
 				URL url = curFile.toURI().toURL();
 				urllist[i++] = url;
 			}
@@ -110,6 +129,9 @@ public class VantedBootstrap {
 			e.printStackTrace();
 		}
 
+		
+		
+		
 		if(DEBUG) {
 			System.out.println("==================");
 			for(URL url : urllist)
@@ -121,7 +143,11 @@ public class VantedBootstrap {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-
+		
+		if( System.getProperty("vanted.debug") != null && System.getProperty("vanted.debug").equals("true")) {
+			DEBUG=true;
+		} else
+			DEBUG=false;
 		new VantedBootstrap(args);
 	}
 
