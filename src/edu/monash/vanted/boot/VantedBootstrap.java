@@ -75,11 +75,28 @@ public class VantedBootstrap {
 	}
 
 	static ClassLoader loadLibraries(ClassLoader cl) {
-		String executionpath = ((URLClassLoader)Thread.currentThread().getContextClassLoader()).getURLs()[0].getPath();
+		URL[] urls = ((URLClassLoader)Thread.currentThread().getContextClassLoader()).getURLs();
+		if(DEBUG) {
+			System.out.println("printing all urls for currents threads context classloader");
+			for(URL curURL : urls)
+				System.out.println(curURL.getPath() + " " + curURL.getFile());
+		}
 		
-		if(executionpath.endsWith(".jar"))
-			executionpath = executionpath.substring(0, executionpath.lastIndexOf("/"));
-		executionpath = executionpath.replace("%20", " ");
+		
+		String executionpath = null;// = ((URLClassLoader)Thread.currentThread().getContextClassLoader()).getURLs()[0].getPath();
+		
+		for(URL curURL : urls) {
+			if(curURL.getPath().endsWith(".jar")) {
+				executionpath = curURL.getPath().substring(0, curURL.getPath().lastIndexOf("/"));
+				executionpath = executionpath.replace("%20", " ");
+				break;
+			}
+		}
+		
+		if(executionpath == null){
+			System.err.println("cannot figure out correct classpath");
+			System.exit(1);
+		}
 		
 		if(DEBUG) {
 			System.out.println("Execution path: "+ executionpath);
