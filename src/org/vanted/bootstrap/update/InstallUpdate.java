@@ -14,8 +14,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.JOptionPane;
-
 import edu.monash.vanted.boot.VantedBootstrap;
 
 /**
@@ -107,7 +105,7 @@ public class InstallUpdate {
 		}
 		
 		fileUpdateOK.createNewFile();
-		JOptionPane.showMessageDialog(null, "Update finished");
+//		JOptionPane.showMessageDialog(null, "Update finished");
 	}
 	
 	private static String extractFileName(String path) {

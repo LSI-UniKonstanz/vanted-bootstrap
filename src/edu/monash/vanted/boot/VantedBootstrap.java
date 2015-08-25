@@ -3,6 +3,7 @@
  */
 package edu.monash.vanted.boot;
 
+import java.awt.BorderLayout;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -13,7 +14,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 import org.vanted.bootstrap.update.InstallUpdate;
 import org.vanted.bootstrap.update.PrivilegeRunner;
@@ -167,19 +171,24 @@ public class VantedBootstrap {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		JFrame frame = new JFrame("Update");
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.add(new JLabel("updating..."), BorderLayout.CENTER);
+		frame.setSize(100, 50);
+		frame.getContentPane().add(panel);
 		
 		if (System.getProperty("vanted.debug") != null && System.getProperty("vanted.debug").equals("true")) {
 			DEBUG = true;
 		} else
 			DEBUG = false;
-		System.out.println("starting");
+//		System.out.println("starting");
 		if (PrivilegeRunner.isPrivilegedMode() && InstallUpdate.isUpdateAvailable()) {
 			/*
 			 * this part only is privileged
 			 */
 			try {
-				System.out.println("is privileged mode AND update is available...doing update");
-				JOptionPane.showMessageDialog(null, "doing update");
+//				System.out.println("is privileged mode AND update is available...doing update");
 				InstallUpdate.doUpdate();
 				return; //return from privileged mode
 			} catch (IOException e) {
@@ -190,12 +199,15 @@ public class VantedBootstrap {
 				try {
 					System.out.println("update is available relaunching with elevated rights");
 					if (ReleaseInfo.windowsRunning()) {
+						JOptionPane.showMessageDialog(null, "Updating VANTED");
 						new PrivilegeRunner().relaunchWithElevatedRights();
 					} else {
 						new PrivilegeRunner().relaunchWithNormalRights();
 					}
 					InstallUpdate.waitUpdateFinished();
-					System.out.println("update finished");
+					JOptionPane.showMessageDialog(null, "Update finished");
+					if (frame.isVisible())
+						frame.setVisible(false);
 				} catch (IOException e) {
 					e.printStackTrace();
 				} catch (InterruptedException e) {
