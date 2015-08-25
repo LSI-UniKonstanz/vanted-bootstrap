@@ -61,7 +61,7 @@ public class PrivilegeRunner
 	
 	public int relaunchWithNormalRights()
 			throws IOException, InterruptedException {
-		String javaExecutable = getJavaExecutable();
+		String javaExecutable = "java";
 		String locationJar = getInstallerJar();
 		ArrayList<String> localArrayList = new ArrayList<>();
 		localArrayList.add(javaExecutable);
