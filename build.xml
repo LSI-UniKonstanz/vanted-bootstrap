@@ -20,6 +20,10 @@
         
         <javac target="1.7" source="1.7" encoding="utf-8" srcdir="src" destdir="bin"/>
         
+        <copy todir="bin">
+            <fileset dir="resources"/>
+        </copy>
+        
     </target>
 
 	<target name="clean">
