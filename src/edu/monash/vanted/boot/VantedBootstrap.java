@@ -198,8 +198,8 @@ public class VantedBootstrap {
 			if (!PrivilegeRunner.isPrivilegedMode() && InstallUpdate.isUpdateAvailable()) {
 				try {
 					System.out.println("update is available relaunching with elevated rights");
+					JOptionPane.showMessageDialog(null, "Updating VANTED");
 					if (ReleaseInfo.windowsRunning()) {
-						JOptionPane.showMessageDialog(null, "Updating VANTED");
 						new PrivilegeRunner().relaunchWithElevatedRights();
 					} else {
 						new PrivilegeRunner().relaunchWithNormalRights();
