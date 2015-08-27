@@ -4,7 +4,9 @@
 package edu.monash.vanted.boot;
 
 import java.awt.BorderLayout;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -28,16 +30,13 @@ import org.vanted.bootstrap.update.ReleaseInfo;
  */
 public class VantedBootstrap {
 	
-	private static Boolean DEBUG = false;
+	public static Boolean DEBUG = false;
 	
 	/**
 	 * 
 	 */
 	public VantedBootstrap(String[] args) {
-		if (DEBUG) {
-			System.out.println("Getting bootstrap information:");
-			System.out.println();
-		}
+		log("Getting bootstrap information:");
 		
 		ClassLoader bootstraploader = loadLibraries(Thread.currentThread().getContextClassLoader());
 		
@@ -83,11 +82,9 @@ public class VantedBootstrap {
 	
 	static ClassLoader loadLibraries(ClassLoader cl) {
 		URL[] urls = ((URLClassLoader) Thread.currentThread().getContextClassLoader()).getURLs();
-		if (DEBUG) {
-			System.out.println("printing all urls for currents threads context classloader");
-			for (URL curURL : urls)
-				System.out.println(curURL.getPath() + " " + curURL.getFile());
-		}
+		log("printing all urls for currents threads context classloader");
+		for (URL curURL : urls)
+			log(curURL.getPath() + " " + curURL.getFile());
 		
 		String executionpath = getExectutionPath(urls);
 		
@@ -96,17 +93,11 @@ public class VantedBootstrap {
 			System.exit(1);
 		}
 		
-		if (DEBUG) {
-			System.out.println("Execution path: " + executionpath);
-		}
+		log("Execution path: " + executionpath);
 		File f = new File(executionpath + "/core-libs/");
-		if (DEBUG) {
-			System.out.println("corelibs path:" + f.getPath());
-		}
+		log("corelibs path:" + f.getPath());
 		File c = new File(executionpath + "/vanted-core/");
-		if (DEBUG) {
-			System.out.println("    core path:" + c.getPath());
-		}
+		log("    core path:" + c.getPath());
 		FilenameFilter filter = new FilenameFilter() {
 			
 			@Override
@@ -116,13 +107,9 @@ public class VantedBootstrap {
 		};
 		
 		File[] listLibFiles = f.listFiles(filter);
-		if (DEBUG) {
-			System.out.println("number of core-lib files:" + listLibFiles.length);
-		}
+		log("number of core-lib files:" + listLibFiles.length);
 		File[] listCoreFiles = c.listFiles(filter);
-		if (DEBUG) {
-			System.out.println("    number of core-files:" + listCoreFiles.length);
-		}
+		log("    number of core-files:" + listCoreFiles.length);
 		
 		URL urllist[] = new URL[listLibFiles.length + listCoreFiles.length];
 		
@@ -143,9 +130,9 @@ public class VantedBootstrap {
 		}
 		
 		if (DEBUG) {
-			System.out.println("==================");
+			log("==================");
 			for (URL url : urllist)
-				System.out.println(url.toString());
+				log(url.toString());
 		}
 		return new BootStrapClassloader(urllist);
 	}
@@ -171,40 +158,48 @@ public class VantedBootstrap {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		
+		if (System.getProperty("vanted.debug") != null && System.getProperty("vanted.debug").equals("true")) {
+			DEBUG = true;
+		} else
+			DEBUG = false;
+		
+		log("starting....");
+		
 		JFrame frame = new JFrame("Update");
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.add(new JLabel("updating..."), BorderLayout.CENTER);
 		frame.setSize(100, 50);
 		frame.getContentPane().add(panel);
-		
-		if (System.getProperty("vanted.debug") != null && System.getProperty("vanted.debug").equals("true")) {
-			DEBUG = true;
-		} else
-			DEBUG = false;
-//		System.out.println("starting");
 		if (PrivilegeRunner.isPrivilegedMode() && InstallUpdate.isUpdateAvailable()) {
 			/*
 			 * this part only is privileged
 			 */
 			try {
+				log("Starting with privileged mode AND update is available");
+				log("doing update");
 //				System.out.println("is privileged mode AND update is available...doing update");
 				InstallUpdate.doUpdate();
-				return; //return from privileged mode
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			log("exiting from update-install mode");
+			return; //return from privileged mode
 		} else
 			if (!PrivilegeRunner.isPrivilegedMode() && InstallUpdate.isUpdateAvailable()) {
 				try {
-					System.out.println("update is available relaunching with elevated rights");
 					JOptionPane.showMessageDialog(null, "Updating VANTED");
 					if (ReleaseInfo.windowsRunning()) {
-						new PrivilegeRunner().relaunchWithElevatedRights();
+						log("update is available: Windows: relaunching with elevated rights");
+						new PrivilegeRunner().relaunchWithElevatedRights(DEBUG);
 					} else {
-						new PrivilegeRunner().relaunchWithNormalRights();
+						log("update is available: MAC / Linux: relaunching normal");
+						new PrivilegeRunner().relaunchWithNormalRights(DEBUG); // on Linux and Mac
 					}
+					log("waiting until update is finished");
 					InstallUpdate.waitUpdateFinished();
+					log("update finished");
 					JOptionPane.showMessageDialog(null, "Update finished");
 					if (frame.isVisible())
 						frame.setVisible(false);
@@ -214,8 +209,23 @@ public class VantedBootstrap {
 					e.printStackTrace();
 				}
 			}
-		System.out.println("bootstrapping VANTED");
+		log("bootstrapping VANTED");
+		log("----------------------------");
 		new VantedBootstrap(args);
 	}
 	
+	static void log(String text) {
+		
+//		if (DEBUG && text != null) {
+		System.out.println("logger: " + text);
+		File file = new File(ReleaseInfo.getAppFolderWithFinalSep() + "bootlog");
+		try (BufferedWriter logfile = new BufferedWriter(new FileWriter(file, true))) {
+			logfile.write(text);
+			logfile.newLine();
+			logfile.flush();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+//		}
+	}
 }

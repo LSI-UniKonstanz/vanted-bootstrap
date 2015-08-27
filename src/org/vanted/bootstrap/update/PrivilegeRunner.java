@@ -49,23 +49,25 @@ public class PrivilegeRunner
 		return false;
 	}
 	
-	public int relaunchWithElevatedRights()
+	public int relaunchWithElevatedRights(boolean enableDebug)
 			throws IOException, InterruptedException
 	{
 		String str1 = getJavaExecutable();
 		String str2 = getInstallerJar();
-		ProcessBuilder localProcessBuilder = new ProcessBuilder(getElevator(str1, str2));
+		ProcessBuilder localProcessBuilder = new ProcessBuilder(getElevator(str1, str2, enableDebug));
 		localProcessBuilder.environment().put("vanted.update.mode", "privileged");
 		return localProcessBuilder.start().waitFor();
 	}
 	
-	public int relaunchWithNormalRights()
+	public int relaunchWithNormalRights(boolean enableDebug)
 			throws IOException, InterruptedException {
 		String javaExecutable = "java";
 		String locationJar = getInstallerJar();
 		ArrayList<String> localArrayList = new ArrayList<>();
 		localArrayList.add(javaExecutable);
 		localArrayList.add("-Dvanted.update.mode=privileged");
+		if (enableDebug)
+			localArrayList.add("-Dvanted.debug=true");
 		localArrayList.add("-jar");
 		localArrayList.add(locationJar);
 		
@@ -74,7 +76,7 @@ public class PrivilegeRunner
 		return localProcessBuilder.start().waitFor();
 	}
 	
-	private List<String> getElevator(String javaExecutable, String locationJar)
+	private List<String> getElevator(String javaExecutable, String locationJar, boolean enableDebug)
 			throws IOException, InterruptedException
 	{
 		ArrayList<String> localArrayList = new ArrayList<>();
@@ -83,6 +85,9 @@ public class PrivilegeRunner
 		localArrayList.add(extractVistaElevator().getCanonicalPath());
 		localArrayList.add(javaExecutable);
 		localArrayList.add("-Dvanted.update.mode=privileged");
+		if (enableDebug)
+			localArrayList.add("-Dvanted.debug=true");
+		
 		localArrayList.add("-jar");
 		localArrayList.add(locationJar);
 		

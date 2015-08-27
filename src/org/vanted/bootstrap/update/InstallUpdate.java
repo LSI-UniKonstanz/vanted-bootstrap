@@ -58,13 +58,15 @@ public class InstallUpdate {
 		System.out.println("getting execution path");
 		String executionpath = VantedBootstrap.getExectutionPath(((URLClassLoader) Thread.currentThread().getContextClassLoader()).getURLs());
 		
+		List<String> listAddCoreJarRelativePath = new ArrayList<String>();
+		List<String> listRemoveCoreJarRelativePath = new ArrayList<String>();
+		List<String> listAddLibsJarRelativePaths = new ArrayList<String>();
+		List<String> listRemoveLibsJarRelativePaths = new ArrayList<String>();
 		String version;
 		
 		BufferedReader reader = new BufferedReader(new FileReader(new File(DESTUPDATEFILE)));
 		System.out.println("reading update file:");
 		String line;
-		String strCoreProgramRelativePath = null;
-		List<String> listStrCoreLibsRelativePaths = new ArrayList<>();
 		while ((line = reader.readLine()) != null) {
 			if (line.equals("//"))
 				break;
@@ -73,35 +75,69 @@ public class InstallUpdate {
 			if (line.toLowerCase().startsWith(VERSIONSTRING)) {
 				version = line.substring(VERSIONSTRING.length() + 1).trim();
 			}
-			if (line.toLowerCase().startsWith(CORESTRING)) {
-				strCoreProgramRelativePath = line.substring(CORESTRING.length() + 1).trim();
-			}
-			if (line.toLowerCase().startsWith(LIBSTRING)) {
-				listStrCoreLibsRelativePaths.add(line.substring(LIBSTRING.length() + 1).trim());
-			}
-			
+			// look for jars to add
+			if (line.toLowerCase().startsWith("+")) {
+				line = line.substring(1);
+				if (line.toLowerCase().startsWith(CORESTRING)) {
+					listAddCoreJarRelativePath.add(line.substring(CORESTRING.length() + 1).trim());
+				}
+				if (line.toLowerCase().startsWith(LIBSTRING)) {
+					listAddLibsJarRelativePaths.add(line.substring(LIBSTRING.length() + 1).trim());
+				}
+			} else
+				if (line.toLowerCase().startsWith("-")) {
+					line = line.substring(1);
+					if (line.toLowerCase().startsWith(CORESTRING)) {
+						listRemoveCoreJarRelativePath.add(line.substring(CORESTRING.length() + 1).trim());
+					}
+					if (line.toLowerCase().startsWith(LIBSTRING)) {
+						listRemoveLibsJarRelativePaths.add(line.substring(LIBSTRING.length() + 1).trim());
+					}
+				}
 		}
 		
 		reader.close();
 		
-		System.out.println("installing update to :" + executionpath);
-		System.out.println("Core: " + strCoreProgramRelativePath);
-		for (String libPath : listStrCoreLibsRelativePaths) {
-			System.out.println(" lib: " + libPath);
+		if (VantedBootstrap.DEBUG) {
+			System.out.println("installing update to :" + executionpath);
+			for (String libPath : listAddCoreJarRelativePath) {
+				System.out.println(" adding core-jar: " + libPath);
+			}
+			for (String libPath : listAddLibsJarRelativePaths) {
+				System.out.println("  adding lib-jar: " + libPath);
+			}
+			System.out.println("----------");
+			for (String libPath : listRemoveCoreJarRelativePath) {
+				System.out.println(" removing core-jar: " + libPath);
+			}
+			for (String libPath : listRemoveLibsJarRelativePaths) {
+				System.out.println("  removing lib-jar: " + libPath);
+			}
 		}
-		
-		if (strCoreProgramRelativePath != null) {
-			Path source = new File(DESTPATHUPDATEDIR + strCoreProgramRelativePath).toPath();
+		for (String corename : listAddCoreJarRelativePath) {
+			Path source = new File(DESTPATHUPDATEDIR + corename).toPath();
 			System.out.println(source);
-			Path target = new File(executionpath + "/vanted-core/" + strCoreProgramRelativePath).toPath();
+			Path target = new File(executionpath + "/vanted-core/" + corename).toPath();
 			System.out.println(target);
 			Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
 		}
-		for (String libname : listStrCoreLibsRelativePaths) {
+		for (String libname : listAddLibsJarRelativePaths) {
 			Path source = new File(DESTPATHUPDATEDIR + libname).toPath();
 			Path target = new File(executionpath + "/core-libs/" + libname).toPath();
 			Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
 			
+		}
+		
+		for (String corename : listRemoveCoreJarRelativePath) {
+			File delFile = new File(executionpath + "/vanted-core/" + corename);
+			if (delFile.exists())
+				delFile.delete();
+		}
+		
+		for (String libname : listRemoveLibsJarRelativePaths) {
+			File delFile = new File(executionpath + "/core-libs/" + libname);
+			if (delFile.exists())
+				delFile.delete();
 		}
 		
 		fileUpdateOK.createNewFile();
