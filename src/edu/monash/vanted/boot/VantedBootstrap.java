@@ -200,7 +200,7 @@ public class VantedBootstrap {
 					log("waiting until update is finished");
 					InstallUpdate.waitUpdateFinished();
 					log("update finished");
-					JOptionPane.showMessageDialog(null, "Update finished");
+//					JOptionPane.showMessageDialog(null, "Update finished");
 					if (frame.isVisible())
 						frame.setVisible(false);
 				} catch (IOException e) {

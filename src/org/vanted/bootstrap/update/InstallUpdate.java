@@ -3,6 +3,11 @@
  */
 package org.vanted.bootstrap.update;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -13,6 +18,13 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 import edu.monash.vanted.boot.VantedBootstrap;
 
@@ -48,7 +60,9 @@ public class InstallUpdate {
 	 * 
 	 */
 	public static void doUpdate() throws IOException {
+		
 		File fileUpdateOK = new File(VANTEDUPDATEOKFILE);
+		ProgressDialog progressDialog = new ProgressDialog(fileUpdateOK);
 		
 		//directory was not deleted but update was done (since this check-file is here
 		if (fileUpdateOK.exists()) {
@@ -63,6 +77,7 @@ public class InstallUpdate {
 		List<String> listAddLibsJarRelativePaths = new ArrayList<String>();
 		List<String> listRemoveLibsJarRelativePaths = new ArrayList<String>();
 		String version;
+		progressDialog.logLine("reading update file:");
 		
 		BufferedReader reader = new BufferedReader(new FileReader(new File(DESTUPDATEFILE)));
 		System.out.println("reading update file:");
@@ -74,6 +89,7 @@ public class InstallUpdate {
 				continue;
 			if (line.toLowerCase().startsWith(VERSIONSTRING)) {
 				version = line.substring(VERSIONSTRING.length() + 1).trim();
+				progressDialog.logLine("updating to: " + version);
 			}
 			// look for jars to add
 			if (line.toLowerCase().startsWith("+")) {
@@ -120,28 +136,39 @@ public class InstallUpdate {
 			Path target = new File(executionpath + "/vanted-core/" + corename).toPath();
 			System.out.println(target);
 			Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+			progressDialog.logLine("copied new vanted core file: " + corename);
 		}
 		for (String libname : listAddLibsJarRelativePaths) {
 			Path source = new File(DESTPATHUPDATEDIR + libname).toPath();
 			Path target = new File(executionpath + "/core-libs/" + libname).toPath();
 			Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+			progressDialog.logLine("copied new vanted library file: " + libname);
 			
 		}
 		
 		for (String corename : listRemoveCoreJarRelativePath) {
 			File delFile = new File(executionpath + "/vanted-core/" + corename);
-			if (delFile.exists())
+			if (delFile.exists()) {
 				delFile.delete();
+				progressDialog.logLine("deleted vanted core file: " + corename);
+			}
 		}
 		
 		for (String libname : listRemoveLibsJarRelativePaths) {
 			File delFile = new File(executionpath + "/core-libs/" + libname);
-			if (delFile.exists())
+			if (delFile.exists()) {
 				delFile.delete();
+				progressDialog.logLine("deleted vanted library file: " + libname);
+			}
 		}
 		
-		fileUpdateOK.createNewFile();
+		progressDialog.logLine("done... ");
+		
+		progressDialog.enableClose();
+		
+//		fileUpdateOK.createNewFile();
 //		JOptionPane.showMessageDialog(null, "Update finished");
+		
 	}
 	
 	private static String extractFileName(String path) {
@@ -149,4 +176,79 @@ public class InstallUpdate {
 		return path.substring(idx + 1);
 	}
 	
+	static class ProgressDialog extends JDialog {
+		
+		JLabel header;
+		
+		JButton okButton;
+		
+		JTextArea logscreen;
+		
+		ProgressDialog instance;
+		
+		File fileUpdateOK;
+		
+		/**
+		 * 
+		 */
+		public ProgressDialog(File fileUpdateOK) {
+			super();
+			this.fileUpdateOK = fileUpdateOK;
+			instance = this;
+			JPanel panel = new JPanel();
+			panel.setLayout(new BorderLayout());
+			
+			header = new JLabel("updating..");
+			Font f = new Font("SansSerif", Font.PLAIN, 20);
+			header.setFont(f);
+			
+			logscreen = new JTextArea();
+			logscreen.setEditable(false);
+			panel.add(header, BorderLayout.NORTH);
+			JScrollPane scrollpane = new JScrollPane(logscreen);
+			scrollpane.setPreferredSize(new Dimension(300, 200));
+			panel.add(scrollpane, BorderLayout.CENTER);
+			
+			okButton = new JButton("OK");
+			okButton.addActionListener(new ActionListener() {
+				
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					instance.setVisible(false);
+					try {
+						getFileUpdateOK().createNewFile();
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+				}
+			});
+			okButton.setEnabled(false);
+			panel.add(okButton, BorderLayout.SOUTH);
+			getContentPane().add(panel);
+			
+			setTitle("Update VANTED - Copying");
+			setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+			setResizable(false);
+			setModal(false);
+			setAlwaysOnTop(true);
+//			setSize(200, 200);
+			pack();
+			setLocationRelativeTo(null);
+			
+			setVisible(true);
+			toFront();
+		}
+		
+		public File getFileUpdateOK() {
+			return fileUpdateOK;
+		}
+		
+		public void logLine(String text) {
+			logscreen.append(text + "\n");
+		}
+		
+		public void enableClose() {
+			okButton.setEnabled(true);
+		}
+	}
 }
