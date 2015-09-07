@@ -76,6 +76,21 @@ public class PrivilegeRunner
 		return localProcessBuilder.start().waitFor();
 	}
 	
+	public int launchAfterUpdate(boolean enableDebug)
+			throws IOException, InterruptedException {
+		String javaExecutable = "java";
+		String locationJar = getInstallerJar();
+		ArrayList<String> localArrayList = new ArrayList<>();
+		localArrayList.add(javaExecutable);
+		if (enableDebug)
+			localArrayList.add("-Dvanted.debug=true");
+		localArrayList.add("-jar");
+		localArrayList.add(locationJar);
+		
+		ProcessBuilder localProcessBuilder = new ProcessBuilder(localArrayList);
+		return localProcessBuilder.start().waitFor();
+	}
+	
 	private List<String> getElevator(String javaExecutable, String locationJar, boolean enableDebug)
 			throws IOException, InterruptedException
 	{

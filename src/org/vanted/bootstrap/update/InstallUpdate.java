@@ -48,6 +48,10 @@ public class InstallUpdate {
 		return new File(DESTUPDATEFILE).exists();
 	}
 	
+	public static boolean isUpdateInstalled() {
+		return new File(VANTEDUPDATEOKFILE).exists();
+	}
+	
 	public static void waitUpdateFinished() {
 		File fileUpdateOK = new File(VANTEDUPDATEOKFILE);
 		while (!fileUpdateOK.exists()) {

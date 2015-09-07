@@ -3,7 +3,6 @@
  */
 package edu.monash.vanted.boot;
 
-import java.awt.BorderLayout;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -16,10 +15,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 
 import org.vanted.bootstrap.update.InstallUpdate;
 import org.vanted.bootstrap.update.PrivilegeRunner;
@@ -165,13 +161,14 @@ public class VantedBootstrap {
 			DEBUG = false;
 		
 		log("starting....");
-		
-		JFrame frame = new JFrame("Update");
-		JPanel panel = new JPanel();
-		panel.setLayout(new BorderLayout());
-		panel.add(new JLabel("updating..."), BorderLayout.CENTER);
-		frame.setSize(100, 50);
-		frame.getContentPane().add(panel);
+/*
+ * JFrame frame = new JFrame("Update");
+ * JPanel panel = new JPanel();
+ * panel.setLayout(new BorderLayout());
+ * panel.add(new JLabel("updating..."), BorderLayout.CENTER);
+ * frame.setSize(100, 50);
+ * frame.getContentPane().add(panel);
+ */
 		if (PrivilegeRunner.isPrivilegedMode() && InstallUpdate.isUpdateAvailable()) {
 			/*
 			 * this part only is privileged
@@ -181,13 +178,15 @@ public class VantedBootstrap {
 				log("doing update");
 //				System.out.println("is privileged mode AND update is available...doing update");
 				InstallUpdate.doUpdate();
+				InstallUpdate.waitUpdateFinished();
+				log("exiting from update-install mode");
+				System.exit(0);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			log("exiting from update-install mode");
-			return; //return from privileged mode
+//			return; //return from privileged mode
 		} else
-			if (!PrivilegeRunner.isPrivilegedMode() && InstallUpdate.isUpdateAvailable()) {
+			if (!PrivilegeRunner.isPrivilegedMode() && InstallUpdate.isUpdateAvailable() && !InstallUpdate.isUpdateInstalled()) {
 				try {
 					JOptionPane.showMessageDialog(null, "Updating VANTED");
 					if (ReleaseInfo.windowsRunning()) {
@@ -200,18 +199,22 @@ public class VantedBootstrap {
 					log("waiting until update is finished");
 					InstallUpdate.waitUpdateFinished();
 					log("update finished");
+					log("bootstrapping VANTED after update");
+					
+					new PrivilegeRunner().launchAfterUpdate(DEBUG);
 //					JOptionPane.showMessageDialog(null, "Update finished");
-					if (frame.isVisible())
-						frame.setVisible(false);
+//					if (frame.isVisible())
+//						frame.setVisible(false);
 				} catch (IOException e) {
 					e.printStackTrace();
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
+			} else {
+				log("bootstrapping VANTED");
+				log("----------------------------");
+				new VantedBootstrap(args);
 			}
-		log("bootstrapping VANTED");
-		log("----------------------------");
-		new VantedBootstrap(args);
 	}
 	
 	static void log(String text) {
