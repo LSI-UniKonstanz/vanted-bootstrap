@@ -68,6 +68,7 @@ public class PrivilegeRunner
 		localArrayList.add("-Dvanted.update.mode=privileged");
 		if (enableDebug)
 			localArrayList.add("-Dvanted.debug=true");
+		localArrayList.add("-Dfile.encoding=UTF-8");
 		localArrayList.add("-jar");
 		localArrayList.add(locationJar);
 		
@@ -84,6 +85,7 @@ public class PrivilegeRunner
 		localArrayList.add(javaExecutable);
 		if (enableDebug)
 			localArrayList.add("-Dvanted.debug=true");
+		localArrayList.add("-Dfile.encoding=UTF-8");
 		localArrayList.add("-jar");
 		localArrayList.add(locationJar);
 		
