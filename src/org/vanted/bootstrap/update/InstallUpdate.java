@@ -70,6 +70,9 @@ public class InstallUpdate {
 			throws IOException
 	{
 		File fileUpdateOK = new File(VANTEDUPDATEOKFILE);
+		
+		File updatefile = new File(DESTUPDATEFILE);
+		
 		ProgressDialog progressDialog = new ProgressDialog(fileUpdateOK);
 		try {
 			
@@ -88,7 +91,7 @@ public class InstallUpdate {
 			String version;
 			progressDialog.logLine("reading update file:");
 			
-			BufferedReader reader = new BufferedReader(new FileReader(new File(DESTUPDATEFILE)));
+			BufferedReader reader = new BufferedReader(new FileReader(updatefile));
 			System.out.println("reading update file:");
 			String line;
 			while ((line = reader.readLine()) != null) {
@@ -173,19 +176,22 @@ public class InstallUpdate {
 			
 			progressDialog.logLine("done... ");
 		} catch (FileNotFoundException e) {
-			progressDialog.logLine("ERROR: " + e.getMessage());
+			progressDialog.logLine("ERROR File not found: " + e.getMessage());
 			progressDialog.logLine(null);
 			progressDialog.logLine("If VANTED fails to start, please "
 					+ "reinstall the latest version.");
+			updatefile.delete();
 			
 			progressDialog.hasException();
 			
 			throw e;
 		} catch (IOException e) {
-			progressDialog.logLine("ERROR: " + e.getMessage());
+			progressDialog.logLine("ERROR IO exception: " + e.getMessage());
 			progressDialog.logLine(null);
 			progressDialog.logLine("If VANTED fails to start, please "
 					+ "reinstall the latest version.");
+			
+			updatefile.delete();
 			
 			progressDialog.hasException();
 			throw e;
