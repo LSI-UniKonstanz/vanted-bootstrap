@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -82,7 +81,8 @@ public class InstallUpdate {
 				return;
 			}
 			System.out.println("getting execution path");
-			String executionpath = VantedBootstrap.getExectutionPath(((URLClassLoader) Thread.currentThread().getContextClassLoader()).getURLs());
+			String executionpath = VantedBootstrap.getExectutionPath(
+					VantedBootstrap.getBaseURL(Thread.currentThread().getContextClassLoader()));
 			
 			List<String> listAddCoreJarRelativePath = new ArrayList<String>();
 			List<String> listRemoveCoreJarRelativePath = new ArrayList<String>();

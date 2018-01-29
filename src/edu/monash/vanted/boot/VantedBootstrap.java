@@ -13,7 +13,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLClassLoader;
+import java.util.Enumeration;
 
 import javax.swing.JOptionPane;
 
@@ -34,9 +34,10 @@ public class VantedBootstrap {
 	public VantedBootstrap(String[] args) {
 		log("Getting bootstrap information:");
 		
-		ClassLoader bootstraploader = loadLibraries(Thread.currentThread().getContextClassLoader());
+		ClassLoader bootstraploader;
 		
 		try {
+			bootstraploader = loadLibraries(Thread.currentThread().getContextClassLoader());
 			Class<?> loadClass = bootstraploader.loadClass("de.ipk_gatersleben.ag_nw.graffiti.plugins.gui.webstart.Main");
 			
 			Constructor<?>[] constructors = loadClass.getConstructors();
@@ -63,37 +64,38 @@ public class VantedBootstrap {
 			startmethod.invoke(null, args, null);
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
-		} catch (SecurityException e) {
-			e.printStackTrace();
 		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
 		} catch (InvocationTargetException e) {
 			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	
-	static ClassLoader loadLibraries(ClassLoader cl) {
-		URL[] urls = ((URLClassLoader) Thread.currentThread().getContextClassLoader()).getURLs();
-		log("printing all urls for currents threads context classloader");
-		for (URL curURL : urls)
+	static ClassLoader loadLibraries(ClassLoader cl) throws IOException {
+		Enumeration<URL> urls = getBaseURL(cl);
+		log("Printing all URLs for current thread's context Classloader...");
+		while (urls.hasMoreElements()) {
+			URL curURL = urls.nextElement();
 			log(curURL.getPath() + " " + curURL.getFile());
+		}
 		
 		String executionpath = getExectutionPath(urls);
 		
 		if (executionpath == null) {
-			System.err.println("cannot figure out correct classpath");
+			System.err.println("CANNOT figure out correct classpath!");
 			System.exit(1);
 		}
 		
 		log("Execution path: " + executionpath);
 		File f = new File(executionpath + "/core-libs/");
-		log("corelibs path:" + f.getPath());
+		log("Corelibs path:" + f.getPath());
 		File c = new File(executionpath + "/vanted-core/");
-		log("    core path:" + c.getPath());
+		log("Core path:" + c.getPath());
 		FilenameFilter filter = new FilenameFilter() {
 			
 			@Override
@@ -103,9 +105,9 @@ public class VantedBootstrap {
 		};
 		
 		File[] listLibFiles = f.listFiles(filter);
-		log("number of core-lib files:" + listLibFiles.length);
+		log("Number of core-lib files:" + listLibFiles.length);
 		File[] listCoreFiles = c.listFiles(filter);
-		log("    number of core-files:" + listCoreFiles.length);
+		log("Number of core files:" + listCoreFiles.length);
 		
 		URL urllist[] = new URL[listLibFiles.length + listCoreFiles.length];
 		
@@ -132,17 +134,33 @@ public class VantedBootstrap {
 		}
 		return new BootStrapClassloader(urllist);
 	}
+
+	/**
+	 * Returns the base URL for further use. Previously used: URLClassLoader,
+	 * which is incompatible with the default ClassLoader starting from Java 9.
+	 * The reason for that was an undocumented in the Java APIs intermediate 
+	 * AppClassLoader, which has been internalized and cannot be accessed.
+	 * 
+	 * @param cl the classLoader
+	 * @return
+	 * @throws IOException
+	 * @since Vanted 2.6.5
+	 */
+	public static Enumeration<URL> getBaseURL(ClassLoader cl) throws IOException {
+		return cl.getResources("");
+	}
 	
 	/**
 	 * @param urls
 	 * @param executionpath
 	 * @return
 	 */
-	public static String getExectutionPath(URL[] urls) {
+	public static String getExectutionPath(Enumeration<URL> urls) {
 		String executionpath = null;
-		for (URL curURL : urls) {
+		while (urls.hasMoreElements()) {
+			URL curURL = urls.nextElement();
 			if (curURL.getPath().endsWith(".jar")) {
-				executionpath = curURL.getPath().substring(0, curURL.getPath().lastIndexOf("/"));
+				executionpath = curURL.getPath().substring(0, curURL.getPath().lastIndexOf(File.separator));
 				executionpath = executionpath.replace("%20", " ");
 				break;
 			}
@@ -160,26 +178,19 @@ public class VantedBootstrap {
 		} else
 			DEBUG = false;
 		
-		log("starting....");
-/*
- * JFrame frame = new JFrame("Update");
- * JPanel panel = new JPanel();
- * panel.setLayout(new BorderLayout());
- * panel.add(new JLabel("updating..."), BorderLayout.CENTER);
- * frame.setSize(100, 50);
- * frame.getContentPane().add(panel);
- */
+		log("Starting....");
+
 		if (PrivilegeRunner.isPrivilegedMode() && InstallUpdate.isUpdateAvailable()) {
 			/*
 			 * this part only is privileged
 			 */
 			try {
 				log("Starting with privileged mode AND update is available");
-				log("doing update");
+				log("Updating...");
 //				System.out.println("is privileged mode AND update is available...doing update");
 				InstallUpdate.doUpdate();
 				InstallUpdate.waitUpdateFinished();
-				log("exiting from update-install mode");
+				log("Exiting update-install mode");
 				System.exit(0);
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -190,36 +201,32 @@ public class VantedBootstrap {
 				try {
 					JOptionPane.showMessageDialog(null, "Updating VANTED");
 					if (ReleaseInfo.windowsRunning()) {
-						log("update is available: Windows: relaunching with elevated rights");
+						log("Update is available: Windows: relaunching with elevated rights");
 						new PrivilegeRunner().relaunchWithElevatedRights(DEBUG);
 					} else {
-						log("update is available: MAC / Linux: relaunching normal");
+						log("Update is available: MAC / Linux: relaunching normally");
 						new PrivilegeRunner().relaunchWithNormalRights(DEBUG); // on Linux and Mac
 					}
-					log("waiting until update is finished");
+					log("Waiting until update is finished");
 					InstallUpdate.waitUpdateFinished();
-					log("update finished");
-					log("bootstrapping VANTED after update");
+					log("Update finished!");
+					log("Bootstrapping VANTED after update");
 					
 					new PrivilegeRunner().launchAfterUpdate(DEBUG);
-//					JOptionPane.showMessageDialog(null, "Update finished");
-//					if (frame.isVisible())
-//						frame.setVisible(false);
+					
 				} catch (IOException e) {
 					e.printStackTrace();
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			} else {
-				log("bootstrapping VANTED");
+				log("Bootstrapping VANTED");
 				log("----------------------------");
 				new VantedBootstrap(args);
 			}
 	}
 	
 	static void log(String text) {
-		
-//		if (DEBUG && text != null) {
 		System.out.println("logger: " + text);
 		File file = new File(ReleaseInfo.getAppFolderWithFinalSep() + "bootlog");
 		try (BufferedWriter logfile = new BufferedWriter(new FileWriter(file, true))) {
@@ -229,6 +236,5 @@ public class VantedBootstrap {
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-//		}
 	}
 }
