@@ -90,9 +90,9 @@ public class VantedBootstrap {
 		}
 		
 		log("Execution path: " + executionpath);
-		File f = new File(executionpath + File.separator + "core-libs" + File.separator);
+		File f = new File(executionpath + "/core-libs/");
 		log("Corelibs path:" + f.getPath());
-		File c = new File(executionpath + File.separator + "vanted-core" + File.separator);
+		File c = new File(executionpath + "/vanted-core/");
 		log("Core path:" + c.getPath());
 		FilenameFilter filter = new FilenameFilter() {
 			
@@ -175,14 +175,12 @@ public class VantedBootstrap {
 	public static String getExecutionPath(URL[] urls) {
 		String executionpath = null;
 		for (URL curURL : urls) {
-			log("getExecutionPath URL: " + curURL.toString());
-			if (curURL.getPath().endsWith(".jar")) {
-				executionpath = curURL.getPath().substring(0, curURL.getPath().lastIndexOf(File.separator));
-				log("--> path is: " + executionpath);
-				executionpath = executionpath.replace("%20", " ");
-				break;
-			}
+			log("getExecutionPath URL: " + curURL.getPath());
+			executionpath = curURL.getPath();
+			executionpath = executionpath.replace("%20", " ");
+			break;
 		}
+		
 		return executionpath;
 	}
 	
