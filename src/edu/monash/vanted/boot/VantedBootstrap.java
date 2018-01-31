@@ -13,6 +13,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 
 import javax.swing.JOptionPane;
@@ -28,9 +30,6 @@ public class VantedBootstrap {
 	
 	public static Boolean DEBUG = false;
 	
-	/**
-	 * 
-	 */
 	public VantedBootstrap(String[] args) {
 		log("Getting bootstrap information:");
 		
@@ -38,7 +37,8 @@ public class VantedBootstrap {
 		
 		try {
 			bootstraploader = loadLibraries(Thread.currentThread().getContextClassLoader());
-			Class<?> loadClass = bootstraploader.loadClass("de.ipk_gatersleben.ag_nw.graffiti.plugins.gui.webstart.Main");
+			Class<?> loadClass = 
+					bootstraploader.loadClass("de.ipk_gatersleben.ag_nw.graffiti.plugins.gui.webstart.Main");
 			
 			Constructor<?>[] constructors = loadClass.getConstructors();
 			if (DEBUG) {
@@ -77,14 +77,12 @@ public class VantedBootstrap {
 	}
 	
 	static ClassLoader loadLibraries(ClassLoader cl) throws IOException {
-		Enumeration<URL> urls = getBaseURL(cl);
+		URL[] urls = VantedBootstrap.getBaseURLArray(cl);		
 		log("Printing all URLs for current thread's context Classloader...");
-		while (urls.hasMoreElements()) {
-			URL curURL = urls.nextElement();
+		for (URL curURL : urls)
 			log(curURL.getPath() + " " + curURL.getFile());
-		}
 		
-		String executionpath = getExectutionPath(urls);
+		String executionpath = getExecutionPath(urls);
 		
 		if (executionpath == null) {
 			System.err.println("CANNOT figure out correct classpath!");
@@ -92,9 +90,9 @@ public class VantedBootstrap {
 		}
 		
 		log("Execution path: " + executionpath);
-		File f = new File(executionpath + "/core-libs/");
+		File f = new File(executionpath + File.separator + "core-libs" + File.separator);
 		log("Corelibs path:" + f.getPath());
-		File c = new File(executionpath + "/vanted-core/");
+		File c = new File(executionpath + File.separator + "vanted-core" + File.separator);
 		log("Core path:" + c.getPath());
 		FilenameFilter filter = new FilenameFilter() {
 			
@@ -109,18 +107,18 @@ public class VantedBootstrap {
 		File[] listCoreFiles = c.listFiles(filter);
 		log("Number of core files:" + listCoreFiles.length);
 		
-		URL urllist[] = new URL[listLibFiles.length + listCoreFiles.length];
+		URL allURLs[] = new URL[listLibFiles.length + listCoreFiles.length];
 		
 		try {
 			int i = 0;
 			
 			for (File curFile : listLibFiles) {
 				URL url = curFile.toURI().toURL();
-				urllist[i++] = url;
+				allURLs[i++] = url;
 			}
 			for (File curFile : listCoreFiles) {
 				URL url = curFile.toURI().toURL();
-				urllist[i++] = url;
+				allURLs[i++] = url;
 			}
 			
 		} catch (MalformedURLException e) {
@@ -129,10 +127,10 @@ public class VantedBootstrap {
 		
 		if (DEBUG) {
 			log("==================");
-			for (URL url : urllist)
+			for (URL url : allURLs)
 				log(url.toString());
 		}
-		return new BootStrapClassloader(urllist);
+		return new BootStrapClassloader(allURLs);
 	}
 
 	/**
@@ -142,7 +140,7 @@ public class VantedBootstrap {
 	 * AppClassLoader, which has been internalized and cannot be accessed.
 	 * 
 	 * @param cl the classLoader
-	 * @return
+	 * @return an URL Enumeration
 	 * @throws IOException
 	 * @since Vanted 2.6.5
 	 */
@@ -151,16 +149,36 @@ public class VantedBootstrap {
 	}
 	
 	/**
+	 * Utility method for {@linkplain VantedBootstrap#getBaseURL(ClassLoader)}.
+	 * 
+	 * @param cl the classLoader
+	 * @return an URL array
+	 * @throws IOException
+	 * @since Vanted 2.6.5
+	 * @see {@linkplain VantedBootstrap#getBaseURL(ClassLoader)}
+	 */
+	public static URL[] getBaseURLArray(ClassLoader cl) throws IOException {
+		ArrayList<URL> urlList = Collections.list(getBaseURL(cl));
+		URL[] urls = new URL[urlList.size()];
+		int j = 0;
+		for (URL url : urlList)
+			urls[j++] = url;
+		
+		return urls;
+	}
+	
+	/**
 	 * @param urls
 	 * @param executionpath
 	 * @return
 	 */
-	public static String getExectutionPath(Enumeration<URL> urls) {
+	public static String getExecutionPath(URL[] urls) {
 		String executionpath = null;
-		while (urls.hasMoreElements()) {
-			URL curURL = urls.nextElement();
+		for (URL curURL : urls) {
+			log("getExecutionPath URL: " + curURL.toString());
 			if (curURL.getPath().endsWith(".jar")) {
 				executionpath = curURL.getPath().substring(0, curURL.getPath().lastIndexOf(File.separator));
+				log("--> path is: " + executionpath);
 				executionpath = executionpath.replace("%20", " ");
 				break;
 			}

@@ -81,8 +81,9 @@ public class InstallUpdate {
 				return;
 			}
 			System.out.println("getting execution path");
-			String executionpath = VantedBootstrap.getExectutionPath(
-					VantedBootstrap.getBaseURL(Thread.currentThread().getContextClassLoader()));
+			String executionpath = VantedBootstrap.getExecutionPath(
+					VantedBootstrap.getBaseURLArray(
+							Thread.currentThread().getContextClassLoader()));
 			
 			List<String> listAddCoreJarRelativePath = new ArrayList<String>();
 			List<String> listRemoveCoreJarRelativePath = new ArrayList<String>();
@@ -208,6 +209,8 @@ public class InstallUpdate {
 	
 	static class ProgressDialog extends JDialog {
 		
+		private static final long serialVersionUID = -8198385026925788794L;
+
 		JLabel header;
 		
 		JButton okButton;
