@@ -175,7 +175,6 @@ public class VantedBootstrap {
 	public static String getExecutionPath(URL[] urls) {
 		String executionpath = null;
 		for (URL curURL : urls) {
-			log("getExecutionPath URL: " + curURL.getPath());
 			executionpath = curURL.getPath();
 			executionpath = executionpath.replace("%20", " ");
 			break;

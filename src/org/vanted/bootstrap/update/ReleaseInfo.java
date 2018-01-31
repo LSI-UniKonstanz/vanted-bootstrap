@@ -9,8 +9,6 @@ package org.vanted.bootstrap.update;
 import java.io.File;
 import java.util.Properties;
 
-import javax.swing.JApplet;
-
 public class ReleaseInfo {
 	
 	public static String WIN_MAC_HOMEFOLDER = "VANTED";
@@ -112,7 +110,7 @@ public class ReleaseInfo {
 	}
 	
 	public static String getAppWebURL() {
-		return "https://immersive-analytics.infotech.monash.edu/vanted";
+		return "https://www.cls.uni-konstanz.de/software/vanted/";
 	}
 	
 	private static String helpIntro = "";
@@ -125,18 +123,6 @@ public class ReleaseInfo {
 		return helpIntro;
 	}
 	
-	private static boolean applet = false;
-	private static JApplet appletContext = null;
-	
-	public static void setRunningAsApplet(JApplet appletContext) {
-		applet = true;
-		ReleaseInfo.appletContext = appletContext;
-	}
-	
-	public static boolean isRunningAsApplet() {
-		return applet;
-	}
-	
 	private static boolean firstRun = false;
 	
 	public static void setIsFirstRun(boolean b) {
@@ -146,9 +132,6 @@ public class ReleaseInfo {
 	public static boolean isFirstRun() {
 		return firstRun;
 	}
-	
-	private static boolean updateCheckRun = false;
-	private static String lastVersion = null;
 	
 	public static String getAppSubdirFolder(String folderName) {
 		String folder = getAppFolderWithFinalSep() + folderName;
@@ -177,12 +160,5 @@ public class ReleaseInfo {
 	public static String getAppSubdirFolderWithFinalSep(String folderName,
 			String folderName2) {
 		return getAppSubdirFolder(folderName, folderName2) + getFileSeparator();
-	}
-	
-	/**
-	 * @return
-	 */
-	public static JApplet getApplet() {
-		return appletContext;
 	}
 }
