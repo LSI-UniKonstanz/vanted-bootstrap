@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project default="bootstrapper-jar" name="Create Runnable Jar for Vanted Botstrap Loader">
     <target name="bootstrapper-jar" depends="compile">
-    	
+
         <jar destfile="jar/vanted-boot.jar" basedir="bin">
             <manifest>
                 <attribute name="Built-By" value="${user.name}"/>
@@ -10,31 +10,31 @@
                 <!-- since Java 7u51 the jar manifest needs the permission attribute for webstart -->
                 <attribute name="Permissions" value="all-permissions"/>
             </manifest>
-            
+
         </jar>
-    	  	
+
     </target>
-    
+
     <target name="compile" depends="clean, init">
-        
-        <javac target="1.8" source="1.8" encoding="utf-8" srcdir="src" destdir="bin"/>
-        
+
+        <javac target="1.8" source="1.8" encoding="utf-8" srcdir="src" destdir="bin" includeantruntime="false"/>
+
         <copy todir="bin">
             <fileset dir="resources"/>
         </copy>
-        
+
     </target>
 
 	<target name="clean">
         <delete dir="bin"/>
 		<delete dir="jar"/>
-        
+
     </target>
-    
+
 	<target name="init">
         <mkdir dir="bin"/>
-        
+
     </target>
-	
-	
+
+
 </project>
