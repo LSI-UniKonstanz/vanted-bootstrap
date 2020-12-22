@@ -17,7 +17,7 @@
 
     <target name="compile" depends="clean, init">
 
-        <javac target="1.8" source="1.8" encoding="utf-8" srcdir="src" destdir="bin" includeantruntime="false"/>
+        <javac target="1.8" source="11" encoding="utf-8" srcdir="src" destdir="bin" includeantruntime="false"/>
 
         <copy todir="bin">
             <fileset dir="resources"/>
